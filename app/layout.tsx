@@ -1,20 +1,21 @@
 import type { Metadata } from "next";
-import { Fraunces, Manrope } from "next/font/google";
+import { DM_Sans, Syne } from "next/font/google";
 import "@/app/globals.css";
 
-const display = Fraunces({
+const display = Syne({
   subsets: ["latin"],
   variable: "--font-display",
 });
 
-const sans = Manrope({
+const sans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
-  title: "Hash Horizon — Solo Mining Odds",
-  description: "Live solo block probability, GPU profitability, and chain calculators for BTC, BCH, BCH2, BTCB2/XBT, BC3 and Pearl.",
+  title: "Solo Chance — BCH2 Solo Mining Odds",
+  description:
+    "Live Bitcoin Cash II solo block probability, profitability, and network stats pulled from the BCH2 explorer.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

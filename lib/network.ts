@@ -43,12 +43,35 @@ export function subsidyFromHeight(height: number, genesis: number, interval: num
 
 async function fetchJson(url: string, timeoutMs = 7_000): Promise<Json> {
   const response = await fetch(url, {
-    headers: { Accept: "application/json", "User-Agent": "HashHorizon/1.0" },
+    headers: { Accept: "application/json", "User-Agent": "SoloChance/1.0" },
     signal: AbortSignal.timeout(timeoutMs),
     next: { revalidate: 30 },
   });
   if (!response.ok) throw new Error(`Upstream returned ${response.status}`);
   return (await response.json()) as Json;
+}
+
+async function fetchPlainNumber(url: string, timeoutMs = 7_000): Promise<number> {
+  const response = await fetch(url, {
+    headers: { Accept: "application/json, text/plain", "User-Agent": "SoloChance/1.0" },
+    signal: AbortSignal.timeout(timeoutMs),
+    next: { revalidate: 30 },
+  });
+  if (!response.ok) throw new Error(`Upstream returned ${response.status}`);
+  const text = (await response.text()).trim();
+  try {
+    const parsed = JSON.parse(text) as unknown;
+    if (typeof parsed === "number" && Number.isFinite(parsed)) return parsed;
+    if (parsed && typeof parsed === "object") {
+      const nested = numberAt(parsed as Json, "value", "difficulty", "hashrate", "nethash", "usd");
+      if (nested !== undefined) return nested;
+    }
+  } catch {
+    /* plain numeric body */
+  }
+  const value = Number(text);
+  if (!Number.isFinite(value)) throw new Error(`Upstream returned a non-numeric body from ${url}`);
+  return value;
 }
 
 export function normalizeNetworkData(
@@ -208,12 +231,58 @@ async function fetchBc3(coin: Coin): Promise<NetworkSnapshot> {
   }
 }
 
+async function fetchBch2(coin: Coin): Promise<NetworkSnapshot> {
+  const explorer = "https://bch2explorer.com/api/v1";
+  try {
+    const [diff, hashrate, height, blockTime, price] = await Promise.all([
+      fetchJson(`${explorer}/live-diff`),
+      fetchPlainNumber(`${explorer}/hashrate`),
+      fetchPlainNumber(`${explorer}/blockcount`),
+      fetchPlainNumber(`${explorer}/blocktime`),
+      fetchPlainNumber(`${explorer}/lastprice`).catch(() => null),
+    ]);
+
+    const difficulty = numberAt(diff, "difficulty");
+    if (!difficulty || !(hashrate > 0) || !(height >= 0)) {
+      throw new Error("BCH2 explorer response is missing required network fields");
+    }
+
+    const snapshot: NetworkSnapshot = {
+      coin: coin.id,
+      difficulty,
+      networkHashrate: hashrate,
+      blockHeight: height,
+      blockTime: blockTime > 0 ? blockTime : 600,
+      blockReward: subsidyFromHeight(height, coin.genesisSubsidy, coin.halvingInterval),
+      priceUsd: price && price > 0 ? price : null,
+      priceSource: price && price > 0 ? "BCH2 Explorer" : null,
+      updatedAt: new Date().toISOString(),
+      source: "BCH2 Explorer",
+      sourceUrl: "https://explorer.bch2.org",
+      stale: false,
+      workFactor: coin.workFactor,
+    };
+
+    if (!snapshot.priceUsd) {
+      return enrichEconomics(snapshot, coin);
+    }
+    return snapshot;
+  } catch {
+    const fallbackUrl = "https://solofury.com/api-bch2/network";
+    return enrichEconomics(
+      normalizeNetworkData(await fetchJson(fallbackUrl), coin, fallbackUrl, "SoloFury full node"),
+      coin,
+    );
+  }
+}
+
 export async function getNetworkSnapshot(id: CoinId): Promise<NetworkSnapshot> {
   const coin = COIN_BY_ID[id];
   try {
     let snapshot: NetworkSnapshot;
     if (id === "prl") snapshot = await fetchPearl(coin);
     else if (id === "bc3") snapshot = await fetchBc3(coin);
+    else if (id === "bch2") snapshot = await fetchBch2(coin);
     else snapshot = await enrichEconomics(normalizeNetworkData(await fetchJson(coin.sourceUrl), coin), coin);
     lastGood.set(id, snapshot);
     return snapshot;
