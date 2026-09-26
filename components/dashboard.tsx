@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { COINS, COIN_BY_ID, coinPriceLabel, toHashrateInput, type CoinId, type HashUnit } from "@/lib/coins";
 import type { GpuBench } from "@/lib/gpus";
 import type { NetworkSnapshot } from "@/lib/network";
@@ -45,6 +45,20 @@ export function Dashboard() {
   const coin = COIN_BY_ID[activeId];
   const input = inputs[activeId];
   const accent = mode === "gpus" ? COIN_BY_ID.prl.accent : coin.accent;
+  const snapshotCache = useRef<Partial<Record<CoinId, NetworkSnapshot>>>({});
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/network/prl", { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : Promise.reject()))
+      .then((snapshot: NetworkSnapshot) => {
+        snapshotCache.current.prl = snapshot;
+      })
+      .catch(() => {
+        /* warm cache only */
+      });
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -54,6 +68,7 @@ export function Dashboard() {
         return (await response.json()) as NetworkSnapshot;
       })
       .then((snapshot) => {
+        snapshotCache.current[activeId] = snapshot;
         setNetwork(snapshot);
         setStatus("ready");
         setInputs((current) => {
@@ -85,8 +100,14 @@ export function Dashboard() {
   function chooseCoin(id: CoinId) {
     if (id === activeId) return;
     setActiveId(id);
-    setNetwork(null);
-    setStatus("loading");
+    const cached = snapshotCache.current[id];
+    if (cached) {
+      setNetwork(cached);
+      setStatus("ready");
+    } else {
+      setNetwork(null);
+      setStatus("loading");
+    }
   }
 
   function patchInput(patch: Partial<InputState[CoinId]>) {
@@ -243,7 +264,7 @@ export function Dashboard() {
             <>
               <ResultPanel odds={odds} network={network} />
               <ProfitPanel coin={coin} network={network} profit={profit} priceUsd={resolvedPrice} />
-              <LuckHorizon odds={odds} />
+              <LuckHorizon odds={odds} coin={coin} />
               <CoinBrief coin={coin} network={network} />
               <SourceStrip network={network} />
             </>
@@ -263,8 +284,9 @@ export function Dashboard() {
             Every valid hash is an independent attempt. We model block discovery as a Poisson process using your
             hashrate and the chain’s current difficulty. Expected daily coins assume you receive a proportional share
             of the block subsidy over time. Profit subtracts electricity only—not hardware, pool fees, or downtime.
-            GPU ranks use public PearlHash benches from Hashrate.no with this site’s live Pearl network and your
-            electricity rate. BTCB2 is quoted as XBT on Neoxa Exchange.
+            Expected blocks are the Poisson mean over a day, week, month, and year at your hashrate. GPU ranks use
+            public PearlHash benches from Hashrate.no with this site’s live Pearl network and your electricity rate.
+            BTCB2 is quoted as XBT on Neoxa Exchange.
           </p>
           <details>
             <summary>See the calculation</summary>

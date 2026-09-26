@@ -299,6 +299,7 @@ footer {
 .profit-hero.is-profit strong { color: var(--gain); }
 .profit-hero.is-loss strong { color: var(--loss); }
 .result-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.network-stats { grid-template-columns: 1fr 1fr; }
 .result-grid > div {
   padding: 32px 22px;
   border-right: 1px solid var(--line);
@@ -308,6 +309,8 @@ footer {
   min-width: 0;
 }
 .result-grid > div:last-child { border-right: 0; }
+.network-stats > div:nth-child(2n) { border-right: 0; }
+.network-stats > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
 .result-grid strong {
   display: block;
   overflow-wrap: anywhere;
@@ -368,12 +371,12 @@ footer {
   background: linear-gradient(90deg, transparent, var(--accent), transparent);
   opacity: .35;
 }
-.horizon-stop { position: relative; z-index: 1; text-align: center; }
+.horizon-stop { position: relative; z-index: 1; text-align: center; padding: 0 10px; }
 .chance-orbit {
   --chance-fill: 0deg;
   width: 72px;
   height: 72px;
-  margin: 0 auto 14px;
+  margin: 0 auto 10px;
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -387,12 +390,27 @@ footer {
   background: #161712;
 }
 .chance-orbit span { position: absolute; font-size: 12px; color: var(--muted); }
-.horizon-stop strong { display: block; font-size: 20px; font-weight: 700; }
+.find-window {
+  display: block;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.horizon-stop strong { display: block; font-size: 22px; font-weight: 700; }
 .horizon-stop small {
   display: block;
   color: var(--muted);
   font-size: 13px;
-  margin-top: 6px;
+  margin-top: 2px;
+}
+.find-meta {
+  margin: 10px 0 0;
+  color: #d2cbb8;
+  font-size: 13px;
+  line-height: 1.45;
 }
 .horizon-note { text-align: center; color: var(--muted); font-size: 13px; margin: 22px 0 0; }
 
@@ -616,6 +634,7 @@ footer {
   .result-grid { grid-template-columns: 1fr; }
   .result-grid > div { border-right: 0; border-bottom: 1px solid var(--line); padding: 22px 18px; }
   .result-grid > div:last-child { border-bottom: 0; }
+  .network-stats > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
   .horizon-track { grid-template-columns: repeat(2, 1fr); gap: 24px 0; padding: 0; }
   .horizon-track::before { display: none; }
   .coin-brief { grid-template-columns: 64px 1fr; gap: 14px; }

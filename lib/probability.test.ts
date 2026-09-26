@@ -37,10 +37,14 @@ describe("solo probability", () => {
     expect(chance).toBeLessThan(1e-20);
   });
 
-  it("derives expected work and network share", () => {
+  it("derives expected work, network share, and block finds", () => {
     const odds = calculateOdds(snapshot.networkHashrate / 10, snapshot);
     expect(odds.chancePerBlock).toBeCloseTo(0.1);
     expect(odds.expectedSeconds).toBeCloseTo(6_000);
+    expect(odds.blocksPerDay).toBeCloseTo(14.4);
     expect(odds.horizons).toHaveLength(4);
+    expect(odds.horizons.map((item) => item.label)).toEqual(["Day", "Week", "Month", "Year"]);
+    expect(odds.horizons[1].expectedBlocks).toBeCloseTo(14.4 * 7);
+    expect(odds.horizons[1].expectedCoins).toBeCloseTo(14.4 * 7 * 3.125);
   });
 });

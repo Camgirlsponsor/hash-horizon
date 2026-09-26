@@ -131,12 +131,14 @@ async function fetchBenchmarkHtml(): Promise<string> {
 }
 
 export async function getGpuLeaderboard(): Promise<GpuLeaderboard> {
-  const snapshot = await getNetworkSnapshot("prl");
-  const fresh = cachedBenches && Date.now() - cachedBenches.at < BENCH_TTL_MS ? cachedBenches : null;
+  const benchFresh = cachedBenches && Date.now() - cachedBenches.at < BENCH_TTL_MS ? cachedBenches : null;
+  const [snapshot, html] = await Promise.all([
+    getNetworkSnapshot("prl"),
+    benchFresh ? Promise.resolve(null) : fetchBenchmarkHtml(),
+  ]);
 
-  if (!fresh) {
-    const html = await fetchBenchmarkHtml();
-    const gpus = parseHashrateNoGpuBenches(html);
+  if (!benchFresh) {
+    const gpus = parseHashrateNoGpuBenches(html!);
     if (!gpus.length) throw new Error("Hashrate.no GPU table was empty");
     cachedBenches = { at: Date.now(), gpus, sourceUrl: HASHRATE_NO_PRL };
   }

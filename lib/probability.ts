@@ -2,18 +2,27 @@ import { UNIT_MULTIPLIERS, type HashUnit } from "@/lib/coins";
 import type { NetworkSnapshot } from "@/lib/network";
 
 export const HORIZONS = [
-  { label: "1 hour", seconds: 3_600 },
-  { label: "24 hours", seconds: 86_400 },
-  { label: "7 days", seconds: 604_800 },
-  { label: "30 days", seconds: 2_592_000 },
+  { label: "Day", seconds: 86_400 },
+  { label: "Week", seconds: 604_800 },
+  { label: "Month", seconds: 2_592_000 },
+  { label: "Year", seconds: 31_557_600 },
 ] as const;
+
+export type HorizonOdds = {
+  label: string;
+  seconds: number;
+  chance: number;
+  expectedBlocks: number;
+  expectedCoins: number | null;
+};
 
 export type Odds = {
   expectedSeconds: number;
   chancePerBlock: number;
   networkShare: number;
   oneInBlocks: number;
-  horizons: { label: string; seconds: number; chance: number }[];
+  blocksPerDay: number;
+  horizons: HorizonOdds[];
 };
 
 export function toHashesPerSecond(value: number, unit: HashUnit): number {
@@ -27,19 +36,31 @@ export function probabilityForPeriod(hashrate: number, difficulty: number, workF
   return Math.min(1, -Math.expm1(-lambda));
 }
 
+export function expectedBlocksForPeriod(hashrate: number, difficulty: number, workFactor: number, seconds: number): number {
+  if (hashrate <= 0 || difficulty <= 0 || workFactor <= 0 || seconds <= 0) return 0;
+  return (hashrate * seconds) / (difficulty * workFactor);
+}
+
 export function calculateOdds(hashrate: number, snapshot: NetworkSnapshot): Odds {
   const expectedSeconds = hashrate > 0 ? (snapshot.difficulty * snapshot.workFactor) / hashrate : Infinity;
   const networkShare = hashrate > 0 ? Math.min(1, hashrate / snapshot.networkHashrate) : 0;
+  const blocksPerDay = expectedBlocksForPeriod(hashrate, snapshot.difficulty, snapshot.workFactor, 86_400);
 
   return {
     expectedSeconds,
     chancePerBlock: networkShare,
     networkShare,
     oneInBlocks: networkShare > 0 ? 1 / networkShare : Infinity,
-    horizons: HORIZONS.map((horizon) => ({
-      ...horizon,
-      chance: probabilityForPeriod(hashrate, snapshot.difficulty, snapshot.workFactor, horizon.seconds),
-    })),
+    blocksPerDay,
+    horizons: HORIZONS.map((horizon) => {
+      const expectedBlocks = expectedBlocksForPeriod(hashrate, snapshot.difficulty, snapshot.workFactor, horizon.seconds);
+      return {
+        ...horizon,
+        expectedBlocks,
+        chance: probabilityForPeriod(hashrate, snapshot.difficulty, snapshot.workFactor, horizon.seconds),
+        expectedCoins: snapshot.blockReward ? expectedBlocks * snapshot.blockReward : null,
+      };
+    }),
   };
 }
 
@@ -76,6 +97,14 @@ export function formatHashrate(value: number): string {
   ] as const;
   const [unit, divisor] = units.find(([, size]) => value >= size) ?? units.at(-1)!;
   return `${(value / divisor).toLocaleString("en-US", { maximumFractionDigits: 2 })} ${unit}`;
+}
+
+export function formatExpectedBlocks(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return "0";
+  if (value >= 100) return value.toLocaleString("en-US", { maximumFractionDigits: 1 });
+  if (value >= 1) return value.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  if (value >= 0.01) return value.toLocaleString("en-US", { maximumFractionDigits: 3 });
+  return Number(value.toPrecision(2)).toString();
 }
 
 export function formatCompactNumber(value: number): string {

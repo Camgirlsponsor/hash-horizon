@@ -41,10 +41,10 @@ export function subsidyFromHeight(height: number, genesis: number, interval: num
   return genesis / 2 ** halvings;
 }
 
-async function fetchJson(url: string): Promise<Json> {
+async function fetchJson(url: string, timeoutMs = 7_000): Promise<Json> {
   const response = await fetch(url, {
     headers: { Accept: "application/json", "User-Agent": "HashHorizon/1.0" },
-    signal: AbortSignal.timeout(7_000),
+    signal: AbortSignal.timeout(timeoutMs),
     next: { revalidate: 30 },
   });
   if (!response.ok) throw new Error(`Upstream returned ${response.status}`);
@@ -113,6 +113,7 @@ async function fetchUsdPrice(coin: Coin): Promise<{ price: number; source: strin
     try {
       const data = await fetchJson(
         `https://api.coingecko.com/api/v3/simple/price?ids=${coin.geckoId}&vs_currencies=usd`,
+        4_000,
       );
       const nested = data[coin.geckoId];
       const price = nested && typeof nested === "object" ? numberAt(nested as Json, "usd") : undefined;
@@ -150,36 +151,12 @@ async function fetchNeoxaBtcb2Price(): Promise<{ price: number; source: string }
   return null;
 }
 
-async function pearlRewardAndBtcRate(): Promise<{ reward?: number; btcRate?: number }> {
-  try {
-    const data = await fetchJson("https://whattomine.com/coins/469.json");
-    return {
-      reward: numberAt(data, "block_reward"),
-      btcRate: numberAt(data, "exchange_rate"),
-    };
-  } catch {
-    return {};
-  }
-}
-
 async function enrichEconomics(snapshot: NetworkSnapshot, coin: Coin, raw?: Json): Promise<NetworkSnapshot> {
   const next = { ...snapshot };
   const rawPrice = raw ? numberAt(raw, "price.usd", "priceUsd", "usd") : undefined;
   if (rawPrice) {
     next.priceUsd = rawPrice;
     next.priceSource = coin.id === "bc3" ? "ArgfaMining" : snapshot.source;
-  }
-
-  if (coin.id === "prl") {
-    const pearl = await pearlRewardAndBtcRate();
-    if (pearl.reward) next.blockReward = pearl.reward;
-    if (!next.priceUsd && pearl.btcRate) {
-      const bitcoin = await fetchUsdPrice(COIN_BY_ID.btc);
-      if (bitcoin) {
-        next.priceUsd = pearl.btcRate * bitcoin.price;
-        next.priceSource = "WhatToMine × BTC";
-      }
-    }
   }
 
   if (!next.priceUsd) {
@@ -194,13 +171,27 @@ async function enrichEconomics(snapshot: NetworkSnapshot, coin: Coin, raw?: Json
 }
 
 async function fetchPearl(coin: Coin): Promise<NetworkSnapshot> {
-  try {
-    return await enrichEconomics(normalizeNetworkData(await fetchJson(coin.sourceUrl), coin), coin);
-  } catch {
-    const fallbackUrl = "https://whattomine.com/coins/469.json";
-    const raw = await fetchJson(fallbackUrl);
-    return enrichEconomics(normalizeNetworkData(raw, coin, fallbackUrl, "WhatToMine · Pearl"), coin, raw);
+  const wtmUrl = "https://whattomine.com/coins/469.json";
+  const [wtmRaw, gecko] = await Promise.all([fetchJson(wtmUrl, 5_000).catch(() => null), fetchUsdPrice(coin)]);
+
+  if (!wtmRaw) throw new Error("Pearl network unavailable");
+  const snapshot = normalizeNetworkData(wtmRaw, coin, wtmUrl, "WhatToMine · Pearl");
+
+  if (gecko) {
+    snapshot.priceUsd = gecko.price;
+    snapshot.priceSource = gecko.source;
+  } else if (wtmRaw) {
+    const btcRate = numberAt(wtmRaw, "exchange_rate");
+    if (btcRate) {
+      const bitcoin = await fetchUsdPrice(COIN_BY_ID.btc);
+      if (bitcoin) {
+        snapshot.priceUsd = btcRate * bitcoin.price;
+        snapshot.priceSource = "WhatToMine × BTC";
+      }
+    }
   }
+
+  return snapshot;
 }
 
 async function fetchBc3(coin: Coin): Promise<NetworkSnapshot> {
