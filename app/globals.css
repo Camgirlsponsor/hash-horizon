@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #12241c;
-  --paper: #eef5f0;
-  --muted: #5a7266;
-  --line: rgba(18, 36, 28, 0.12);
-  --panel: rgba(255, 255, 255, 0.78);
-  --accent: #0d9f6e;
-  --accent-deep: #086b4a;
-  --gain: #0d9f6e;
-  --loss: #c45c3e;
-  --wash: #d7ebe1;
+  --ink: #e7f3ec;
+  --paper: #07110d;
+  --muted: #93b0a2;
+  --line: rgba(231, 243, 236, 0.12);
+  --panel: rgba(10, 22, 17, 0.72);
+  --accent: #3dcea0;
+  --accent-deep: #8ee0c0;
+  --gain: #5ee0a8;
+  --loss: #f0a07a;
+  --wash: #10241c;
 }
 
 * { box-sizing: border-box; }
@@ -33,9 +33,10 @@ a { color: inherit; }
   position: relative;
   overflow-x: hidden;
   background:
-    radial-gradient(ellipse 80% 50% at 70% -10%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 10% 20%, color-mix(in srgb, var(--wash) 90%, transparent), transparent 50%),
-    linear-gradient(165deg, #f7fbf8 0%, #e8f2ec 48%, #dfece5 100%);
+    radial-gradient(ellipse 70% 48% at 88% -8%, color-mix(in srgb, var(--accent) 34%, transparent), transparent 52%),
+    radial-gradient(ellipse 46% 36% at 6% 12%, rgba(24, 92, 120, 0.42), transparent 58%),
+    radial-gradient(ellipse 55% 40% at 42% 108%, rgba(13, 110, 74, 0.38), transparent 50%),
+    linear-gradient(168deg, #101c18 0%, #07110d 46%, #0c1a15 100%);
 }
 
 .hash-field {
@@ -156,8 +157,8 @@ footer {
 }
 .top-nav a:hover { color: var(--ink); }
 .nav-cta {
-  color: white !important;
-  background: var(--ink);
+  color: #07110d !important;
+  background: var(--accent);
   border-radius: 999px;
   padding: 9px 16px !important;
 }
@@ -237,7 +238,7 @@ footer {
 .btn-primary:hover { background: var(--accent-deep); }
 .btn-ghost {
   border: 1px solid var(--line);
-  background: color-mix(in srgb, white 55%, transparent);
+  background: color-mix(in srgb, var(--wash) 70%, transparent);
   backdrop-filter: blur(10px);
 }
 .btn-ghost:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
@@ -259,7 +260,7 @@ footer {
   padding: 22px;
   border: 1px solid var(--line);
   border-radius: 24px;
-  background: color-mix(in srgb, white 70%, transparent);
+  background: color-mix(in srgb, #0c1a15 78%, transparent);
   backdrop-filter: blur(18px);
   box-shadow: 0 20px 50px rgba(18, 36, 28, 0.05);
 }
@@ -305,7 +306,7 @@ footer {
 .ticker-cell {
   padding: 14px 12px;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--wash) 55%, white);
+  background: color-mix(in srgb, var(--wash) 82%, #07110d);
 }
 .ticker-cell span {
   display: block;
@@ -396,7 +397,7 @@ footer {
   background: var(--line);
   border-bottom: 1px solid var(--line);
 }
-.field { background: #f8fcf9; padding: 18px 20px 20px; }
+.field { background: #0c1612; padding: 18px 20px 20px; }
 .field label {
   display: block;
   font-size: 12px;
@@ -422,7 +423,7 @@ footer {
   height: 56px;
   border: 1px solid transparent;
   outline: 0;
-  background: white;
+  background: #08110e;
   color: var(--ink);
   padding: 0 14px;
   border-radius: 14px;
@@ -510,7 +511,7 @@ footer {
   letter-spacing: 0;
   font-weight: 500;
   font-size: 13px;
-  color: #3d5248;
+  color: #c5d8cc;
 }
 
 .profit-panel { border-bottom: 1px solid var(--line); }
@@ -565,7 +566,7 @@ footer {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: conic-gradient(var(--accent) var(--chance-fill), rgba(18, 36, 28, 0.1) 0);
+  background: conic-gradient(var(--accent) var(--chance-fill), rgba(231, 243, 236, 0.12) 0);
   position: relative;
 }
 .chance-orbit::before {
@@ -573,7 +574,7 @@ footer {
   width: 58px;
   height: 58px;
   border-radius: 50%;
-  background: #f8fcf9;
+  background: #0c1612;
 }
 .chance-orbit span { position: absolute; font-size: 12px; color: var(--muted); }
 .find-window {
@@ -594,7 +595,7 @@ footer {
 }
 .find-meta {
   margin: 10px 0 0;
-  color: #3d5248;
+  color: #c5d8cc;
   font-size: 13px;
   line-height: 1.45;
 }
@@ -618,7 +619,7 @@ footer {
   font-family: var(--font-display), sans-serif;
   font-size: 28px;
   font-weight: 750;
-  background: color-mix(in srgb, var(--accent) 8%, white);
+  background: color-mix(in srgb, var(--accent) 12%, #0c1612);
 }
 .brief-tags { display: flex; flex-wrap: wrap; gap: 8px; }
 .brief-tags span {
@@ -628,9 +629,9 @@ footer {
   font-size: 12px;
   letter-spacing: 0.06em;
   color: var(--muted);
-  background: white;
+  background: #08110e;
 }
-.coin-brief p { max-width: 720px; color: #2c3f35; font-size: 16px; line-height: 1.65; margin: 0 0 14px; }
+.coin-brief p { max-width: 720px; color: #d5e6db; font-size: 16px; line-height: 1.65; margin: 0 0 14px; }
 .coin-brief a { font-size: 13px; letter-spacing: 0.06em; text-underline-offset: 4px; font-weight: 650; }
 .coin-brief a span { color: var(--accent-deep); }
 .brief-links { display: flex; flex-wrap: wrap; gap: 16px 22px; }
@@ -643,7 +644,7 @@ footer {
   gap: 14px;
   color: var(--muted);
   font-size: 13px;
-  background: #f8fcf9;
+  background: #0c1612;
 }
 .source-strip > span {
   color: var(--gain);
@@ -654,7 +655,7 @@ footer {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 700;
-  background: white;
+  background: #08110e;
 }
 .source-strip > span.stale { color: #b45309; border-color: color-mix(in srgb, #b45309 28%, transparent); }
 .source-strip p { margin: 0; }
@@ -685,7 +686,7 @@ footer {
   padding: 10px 16px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: white;
+  background: #08110e;
   cursor: pointer;
   font-size: 13px;
   font-weight: 650;
@@ -707,7 +708,7 @@ footer {
 }
 .about-copy > p {
   margin: 0 0 22px;
-  color: #2c3f35;
+  color: #d5e6db;
   font-size: 16px;
   line-height: 1.7;
   max-width: 40rem;
@@ -731,7 +732,7 @@ footer {
   padding: 22px 22px 20px;
   border: 1px solid var(--line);
   border-radius: 20px;
-  background: color-mix(in srgb, white 72%, transparent);
+  background: color-mix(in srgb, #0c1a15 78%, transparent);
   backdrop-filter: blur(12px);
 }
 .about-features span {
@@ -774,7 +775,7 @@ footer {
 }
 .methodology > div > p {
   max-width: 680px;
-  color: #2c3f35;
+  color: #d5e6db;
   line-height: 1.7;
   margin: 20px 0;
   font-size: 16px;
