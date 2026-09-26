@@ -87,12 +87,12 @@ export function Dashboard({ initialNetwork = null }: { initialNetwork?: NetworkS
       <HashField />
 
       <header className="topbar">
-        <a className="brand" href="#" aria-label="Solo Chance home">
+        <a className="brand" href="#" aria-label="Hash Horizon home">
           <span className="brand-mark" aria-hidden="true">
             <i />
             <i />
           </span>
-          <span>Solo Chance</span>
+          <span>Hash Horizon</span>
         </a>
         <nav className="top-nav" aria-label="Primary">
           <a href="#odds">Odds</a>
@@ -111,7 +111,7 @@ export function Dashboard({ initialNetwork = null }: { initialNetwork?: NetworkS
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         >
-          Solo Chance
+          Hash Horizon
         </motion.p>
         <motion.h1
           initial={{ opacity: 0, y: 18 }}
@@ -240,7 +240,7 @@ export function Dashboard({ initialNetwork = null }: { initialNetwork?: NetworkS
       </section>
 
       <footer>
-        <span>Solo Chance · BCH2</span>
+        <span>Hash Horizon · BCH2</span>
         <span>Verify · Measure · Decide</span>
       </footer>
     </main>

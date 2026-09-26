@@ -13,7 +13,7 @@ const sans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Solo Chance — BCH2 Solo Mining Odds",
+  title: "Hash Horizon — BCH2 Solo Mining Odds",
   description:
     "Live Bitcoin Cash II solo block probability, profitability, and network stats pulled from the BCH2 explorer.",
 };
