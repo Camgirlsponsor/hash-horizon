@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { AboutBch2 } from "@/components/about-bch2";
 import { CoinBrief } from "@/components/coin-brief";
-import { HashField } from "@/components/hash-field";
+import { ParticleField } from "@/components/particle-field";
 import { LuckHorizon } from "@/components/luck-horizon";
 import { NetworkTicker } from "@/components/network-ticker";
 import { ProfitPanel } from "@/components/profit-panel";
@@ -84,7 +84,7 @@ export function Dashboard({ initialNetwork = null }: { initialNetwork?: NetworkS
 
   return (
     <main className="site-shell" style={{ "--accent": coin.accent } as CSSProperties}>
-      <HashField />
+      <ParticleField />
 
       <header className="topbar">
         <a className="brand" href="#" aria-label="Hash Horizon home">
