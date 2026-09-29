@@ -44,9 +44,9 @@ export const COINS: Coin[] = [
     hardware: "SHA-256 ASIC",
     brief:
       "Bitcoin Cash II is a SHA-256 proof-of-work chain with 10-minute blocks, a 21M cap, and no premine or developer fee. Bitaxe-class miners and larger ASICs can solo mine; GPUs and CPUs are possible but not competitive.",
-    defaultValue: "1",
+    defaultValue: "50",
     defaultUnit: "TH/s",
-    defaultWatts: "18",
+    defaultWatts: "1500",
     sourceUrl: "https://bch2explorer.com/api/",
     sourceLabel: "BCH2 Explorer",
     marketUrl: "https://nonkyc.io/market/BCH2_USDT",

@@ -7,6 +7,7 @@ export type ProfitEstimate = {
   profitPerDay: number | null;
   profitPerMonth: number | null;
   powerShare: number | null;
+  breakEvenKwh: number | null;
 };
 
 export function calculateProfit(
@@ -19,11 +20,13 @@ export function calculateProfit(
   const blocksPerDay = snapshot.blockTime > 0 ? 86_400 / snapshot.blockTime : 0;
   const networkShare = snapshot.networkHashrate > 0 ? Math.min(1, Math.max(0, hashrate) / snapshot.networkHashrate) : 0;
   const coinsPerDay = snapshot.blockReward ? networkShare * blocksPerDay * snapshot.blockReward : 0;
-  const costPerDay = (Math.max(0, watts) / 1000) * 24 * Math.max(0, kwhPrice);
+  const kwhPerDay = (Math.max(0, watts) / 1000) * 24;
+  const costPerDay = kwhPerDay * Math.max(0, kwhPrice);
   const revenuePerDay = priceUsd != null && priceUsd > 0 ? coinsPerDay * priceUsd : null;
   const profitPerDay = revenuePerDay != null ? revenuePerDay - costPerDay : null;
   const profitPerMonth = profitPerDay != null ? profitPerDay * 30 : null;
   const powerShare = revenuePerDay != null && revenuePerDay > 0 ? costPerDay / revenuePerDay : null;
+  const breakEvenKwh = revenuePerDay != null && kwhPerDay > 0 ? revenuePerDay / kwhPerDay : null;
 
   return {
     coinsPerDay,
@@ -32,6 +35,7 @@ export function calculateProfit(
     profitPerDay,
     profitPerMonth,
     powerShare,
+    breakEvenKwh,
   };
 }
 

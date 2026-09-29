@@ -52,8 +52,8 @@ export function ProfitPanel({
             <span>Power / day</span>
             <strong>{formatUsd(profit.costPerDay)}</strong>
             <small>
-              {profit.powerShare != null
-                ? `${(profit.powerShare * 100).toFixed(1)}% of revenue`
+              {profit.breakEvenKwh != null
+                ? `breaks even at ${formatUsd(profit.breakEvenKwh)}/kWh`
                 : "from watts × rate"}
             </small>
           </div>
