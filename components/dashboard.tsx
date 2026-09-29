@@ -190,6 +190,11 @@ export function Dashboard({ initialNetwork = null }: { initialNetwork?: NetworkS
                 priceDirtyRef.current = true;
                 setPrice(value);
               }}
+              onPreset={(preset) => {
+                setHashrateValue(preset.value);
+                setUnit(preset.unit);
+                setWatts(preset.watts);
+              }}
             />
 
             {status === "loading" && <LoadingState />}

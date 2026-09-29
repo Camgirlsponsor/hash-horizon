@@ -1,6 +1,14 @@
 "use client";
 
 import { HASH_UNITS, type HashUnit } from "@/lib/coins";
+import { toHashesPerSecond } from "@/lib/probability";
+
+const PRESETS: { label: string; value: string; unit: HashUnit; watts: string }[] = [
+  { label: "Bitaxe", value: "1", unit: "TH/s", watts: "18" },
+  { label: "S9", value: "14", unit: "TH/s", watts: "1320" },
+  { label: "S19", value: "95", unit: "TH/s", watts: "3250" },
+  { label: "S21", value: "200", unit: "TH/s", watts: "3500" },
+];
 
 type Props = {
   hashrate: string;
@@ -15,6 +23,7 @@ type Props = {
   onWattsChange: (value: string) => void;
   onKwhChange: (value: string) => void;
   onPriceChange: (value: string) => void;
+  onPreset: (preset: { value: string; unit: HashUnit; watts: string }) => void;
 };
 
 function sanitize(value: string) {
@@ -34,8 +43,24 @@ export function RigControls({
   onWattsChange,
   onKwhChange,
   onPriceChange,
+  onPreset,
 }: Props) {
+  const terahash = toHashesPerSecond(Number(hashrate), unit) / 1e12;
+  const joulesPerTerahash = terahash > 0 && Number(watts) > 0 ? Number(watts) / terahash : null;
+
   return (
+    <>
+    <div className="preset-strip">
+      <span>Typical miners</span>
+      {PRESETS.map((preset) => {
+        const active = hashrate === preset.value && unit === preset.unit && watts === preset.watts;
+        return (
+          <button key={preset.label} type="button" className={active ? "active" : ""} onClick={() => onPreset(preset)}>
+            {preset.label}
+          </button>
+        );
+      })}
+    </div>
     <div className="rig-controls">
       <div className="field field-hash">
         <label htmlFor="hashrate">Your hashrate</label>
@@ -67,6 +92,9 @@ export function RigControls({
           />
           <span>W</span>
         </div>
+        {joulesPerTerahash != null && (
+          <p className="field-hint">{joulesPerTerahash.toLocaleString("en-US", { maximumFractionDigits: 1 })} J/TH</p>
+        )}
       </div>
 
       <div className="field">
@@ -98,5 +126,6 @@ export function RigControls({
         </div>
       </div>
     </div>
+    </>
   );
 }

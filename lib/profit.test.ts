@@ -30,6 +30,7 @@ describe("profitability", () => {
     const result = calculateProfit(1e12, 3500, 0.12, snapshot);
     expect(result.costPerDay).toBeCloseTo(10.08);
     expect(result.profitPerDay).toBeCloseTo((result.revenuePerDay ?? 0) - 10.08);
+    expect(result.breakEvenKwh).toBeCloseTo((result.revenuePerDay ?? 0) / ((3500 / 1000) * 24));
   });
 
   it("omits fiat totals when price is missing", () => {
