@@ -5,15 +5,13 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { AboutBch2 } from "@/components/about-bch2";
 import { CoinBrief } from "@/components/coin-brief";
 import { ParticleField } from "@/components/particle-field";
-import { LuckHorizon } from "@/components/luck-horizon";
+import { CalculatorReport } from "@/components/calculator-report";
 import { NetworkTicker } from "@/components/network-ticker";
-import { ProfitPanel } from "@/components/profit-panel";
-import { ResultPanel } from "@/components/result-panel";
 import { RigControls } from "@/components/rig-controls";
 import { COIN_BY_ID, coinPriceLabel, type HashUnit } from "@/lib/coins";
 import type { NetworkSnapshot } from "@/lib/network";
-import { calculateOdds, toHashesPerSecond } from "@/lib/probability";
-import { calculateProfit } from "@/lib/profit";
+import { toHashesPerSecond } from "@/lib/probability";
+import { buildSoloReport } from "@/lib/solo";
 
 const coin = COIN_BY_ID.bch2;
 
@@ -27,8 +25,12 @@ function formatPriceInput(value: number): string {
 export function Dashboard({ initialNetwork = null }: { initialNetwork?: NetworkSnapshot | null }) {
   const [hashrateValue, setHashrateValue] = useState(coin.defaultValue);
   const [unit, setUnit] = useState<HashUnit>(coin.defaultUnit);
+  const [miners, setMiners] = useState("1");
   const [watts, setWatts] = useState(coin.defaultWatts);
+  const [uptime, setUptime] = useState("100");
   const [kwh, setKwh] = useState("0.12");
+  const [hardware, setHardware] = useState("");
+  const [poolFee, setPoolFee] = useState("1");
   const [price, setPrice] = useState(
     initialNetwork?.priceUsd != null ? formatPriceInput(initialNetwork.priceUsd) : "",
   );
@@ -57,24 +59,33 @@ export function Dashboard({ initialNetwork = null }: { initialNetwork?: NetworkS
     return () => controller.abort();
   }, [retryCount]);
 
-  const hashrate = toHashesPerSecond(Number(hashrateValue), unit);
-  const wattsNum = Number(watts);
+  const hashrateEach = toHashesPerSecond(Number(hashrateValue), unit);
+  const minersNum = Number(miners);
+  const wattsEach = Number(watts);
+  const uptimeNum = Number(uptime);
   const kwhPrice = Number(kwh);
   const priceUsd = Number(price);
+  const hardwareUsd = Number(hardware);
+  const poolFeeNum = Number(poolFee);
   const resolvedPrice = Number.isFinite(priceUsd) && priceUsd > 0 ? priceUsd : network?.priceUsd ?? null;
-  const odds = useMemo(() => (network ? calculateOdds(hashrate, network) : null), [hashrate, network]);
-  const profit = useMemo(
+  const report = useMemo(
     () =>
       network
-        ? calculateProfit(
-            hashrate,
-            Number.isFinite(wattsNum) ? wattsNum : 0,
-            Number.isFinite(kwhPrice) ? kwhPrice : 0,
-            network,
-            resolvedPrice,
-          )
+        ? buildSoloReport({
+            hashrateEach,
+            miners: Number.isFinite(minersNum) ? minersNum : 0,
+            wattsEach: Number.isFinite(wattsEach) ? wattsEach : 0,
+            uptimePercent: Number.isFinite(uptimeNum) ? uptimeNum : 0,
+            kwhPrice: Number.isFinite(kwhPrice) ? kwhPrice : 0,
+            priceUsd: resolvedPrice,
+            hardwareUsd: Number.isFinite(hardwareUsd) ? hardwareUsd : 0,
+            poolFeePercent: Number.isFinite(poolFeeNum) ? poolFeeNum : 0,
+            snapshot: network,
+            halvingInterval: coin.halvingInterval,
+            genesisSubsidy: coin.genesisSubsidy,
+          })
         : null,
-    [hashrate, wattsNum, kwhPrice, network, resolvedPrice],
+    [network, hashrateEach, minersNum, wattsEach, uptimeNum, kwhPrice, resolvedPrice, hardwareUsd, poolFeeNum],
   );
 
   function retry() {
@@ -150,8 +161,10 @@ export function Dashboard({ initialNetwork = null }: { initialNetwork?: NetworkS
           <div className="eyebrow">
             <span>01</span> Solo calculator
           </div>
-          <h2 id="odds-title">Enter your hashrate.</h2>
-          <p>We model block discovery as a Poisson process against the live BCH2 network target.</p>
+          <h2 id="odds-title">Build the rig. Read the odds.</h2>
+          <p>
+            Hashrate, uptime, power, hardware cost, and a pool fee — scored against the live BCH2 target.
+          </p>
         </div>
 
         <AnimatePresence mode="wait">
@@ -177,39 +190,46 @@ export function Dashboard({ initialNetwork = null }: { initialNetwork?: NetworkS
             <RigControls
               hashrate={hashrateValue}
               unit={unit}
+              miners={miners}
               watts={watts}
+              uptime={uptime}
               kwh={kwh}
               price={price}
+              hardware={hardware}
+              poolFee={poolFee}
               livePrice={network?.priceUsd ?? null}
               ticker={coinPriceLabel(coin)}
               onHashrateChange={setHashrateValue}
               onUnitChange={setUnit}
+              onMinersChange={setMiners}
               onWattsChange={setWatts}
+              onUptimeChange={setUptime}
               onKwhChange={setKwh}
               onPriceChange={(value) => {
                 priceDirtyRef.current = true;
                 setPrice(value);
               }}
+              onHardwareChange={setHardware}
+              onPoolFeeChange={setPoolFee}
               onPreset={(preset) => {
                 setHashrateValue(preset.value);
                 setUnit(preset.unit);
                 setWatts(preset.watts);
+                setMiners("1");
               }}
             />
 
             {status === "loading" && <LoadingState />}
             {status === "error" && <ErrorState onRetry={retry} />}
-            {status === "ready" && network && odds && profit && hashrate > 0 && (
+            {status === "ready" && network && report && report.effectiveHashrate > 0 && (
               <>
-                <ResultPanel odds={odds} network={network} />
-                <ProfitPanel coin={coin} network={network} profit={profit} priceUsd={resolvedPrice} />
-                <LuckHorizon odds={odds} coin={coin} />
+                <CalculatorReport coin={coin} network={network} report={report} />
                 <CoinBrief coin={coin} network={network} />
                 <SourceStrip network={network} />
               </>
             )}
-            {status === "ready" && hashrate <= 0 && (
-              <div className="empty-state">Enter a hashrate greater than zero to reveal your horizon.</div>
+            {status === "ready" && (!report || report.effectiveHashrate <= 0) && (
+              <div className="empty-state">Enter a hashrate, miner count, and uptime above zero.</div>
             )}
           </motion.div>
         </AnimatePresence>
@@ -229,9 +249,10 @@ export function Dashboard({ initialNetwork = null }: { initialNetwork?: NetworkS
           </h2>
           <p>
             Every valid hash is an independent attempt. We model block discovery as a Poisson process using your
-            hashrate and BCH2’s current difficulty from the public explorer. Expected daily coins assume a proportional
-            share of the block subsidy over time. Profit subtracts electricity only—not hardware, pool fees, or
-            downtime.
+            effective hashrate — machines times uptime — and BCH2’s current difficulty from the public explorer.
+            Expected coins are your share of the subsidy. Profit subtracts electricity only. Hardware payback uses that
+            net figure and ignores resale. The pool column is the same expectation minus the fee, not a promise of
+            smoother luck.
           </p>
           <details>
             <summary>See the calculation</summary>

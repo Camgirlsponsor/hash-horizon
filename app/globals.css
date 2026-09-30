@@ -511,7 +511,8 @@ footer {
 
 .profit-panel { border-bottom: 1px solid var(--line); }
 .profit-panel .section-kicker,
-.horizon .section-kicker { padding: 22px 32px 0; }
+.horizon .section-kicker,
+.outlook .section-kicker { padding: 22px 32px 0; }
 .profit-panel h2 { padding: 0 32px; }
 .profit-stats { border-bottom: 0; }
 
@@ -528,6 +529,7 @@ footer {
 }
 .horizon h2,
 .profit-panel h2,
+.outlook h2,
 .coin-brief h2 {
   font-family: var(--font-display), sans-serif;
   font-size: 28px;
@@ -751,6 +753,107 @@ footer {
   line-height: 1.55;
 }
 
+.luck-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.luck-mark {
+  padding: 28px 22px;
+  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.luck-mark span,
+.insight-grid span,
+.compare-grid span,
+.halving-strip span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.luck-mark strong,
+.insight-grid strong,
+.halving-strip strong,
+.compare-grid strong {
+  display: block;
+  margin: 8px 0 6px;
+  font-family: var(--font-display), sans-serif;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.luck-mark strong { font-size: clamp(22px, 2vw, 32px); }
+.luck-mark small,
+.insight-grid small,
+.halving-strip small {
+  color: #c5d8cc;
+  font-size: 13px;
+  font-weight: 500;
+}
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-bottom: 1px solid var(--line);
+}
+.insight-grid > div {
+  min-width: 0;
+  padding: 22px 18px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.insight-grid > div:nth-child(4n) { border-right: 0; }
+.insight-grid > div:nth-last-child(-n+4) { border-bottom: 0; }
+.insight-grid strong { font-size: clamp(18px, 1.5vw, 24px); overflow-wrap: anywhere; }
+.insight-grid .is-profit strong { color: var(--gain); }
+.insight-grid .is-loss strong { color: var(--loss); }
+.outlook { padding: 8px 0 0; border-bottom: 1px solid var(--line); }
+.outlook-wrap { overflow-x: auto; }
+.outlook-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.outlook-table th,
+.outlook-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-top: 1px solid var(--line);
+  white-space: nowrap;
+}
+.outlook-table thead th {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.outlook-table tbody th { font-weight: 700; }
+.outlook-table td.is-profit { color: var(--gain); font-weight: 700; }
+.outlook-table td.is-loss { color: var(--loss); font-weight: 700; }
+.compare-grid,
+.halving-strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--line);
+}
+.compare-grid article,
+.halving-strip > div { padding: 28px 32px; }
+.compare-grid article + article,
+.halving-strip > div + div { border-left: 1px solid var(--line); }
+.compare-grid strong,
+.halving-strip strong { font-size: clamp(24px, 2.4vw, 34px); }
+.compare-grid p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 46ch;
+}
+
 .methodology {
   margin-bottom: 64px;
   padding: 48px 0;
@@ -810,7 +913,17 @@ footer {
 
 @media (max-width: 1100px) {
   .ticker-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .rig-controls { grid-template-columns: 1fr 1fr; }
+  .rig-controls,
+  .luck-grid,
+  .insight-grid,
+  .compare-grid,
+  .halving-strip { grid-template-columns: 1fr 1fr; }
+  .insight-grid > div:nth-child(4n) { border-right: 1px solid var(--line); }
+  .insight-grid > div:nth-child(2n) { border-right: 0; }
+  .insight-grid > div:nth-last-child(-n+4) { border-bottom: 1px solid var(--line); }
+  .insight-grid > div:nth-last-child(-n+2) { border-bottom: 0; }
+  .luck-mark { border-left: 0; border-top: 1px solid var(--line); }
+  .luck-mark:first-child { border-top: 0; }
   .result-panel,
   .profit-grid { grid-template-columns: 1fr; }
   .result-primary,
@@ -835,7 +948,14 @@ footer {
   }
   .hero-brand { font-size: clamp(36px, 12vw, 52px); }
   .ticker-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .rig-controls { grid-template-columns: 1fr; }
+  .rig-controls,
+  .luck-grid,
+  .insight-grid,
+  .compare-grid,
+  .halving-strip { grid-template-columns: 1fr; }
+  .insight-grid > div { border-right: 0; }
+  .compare-grid article + article,
+  .halving-strip > div + div { border-left: 0; border-top: 1px solid var(--line); }
   .instrument-head,
   .result-primary,
   .profit-hero,
